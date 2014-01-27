@@ -18,23 +18,25 @@ class KernScore:
     Only verified for Bach Chorales right now.
     Instantiate using KernScore(path_to_kernfile).
     """
-    file_path = None
-    section_order = None
+    def __init__(self):
+        self.file_path = None
 
-    metadata = None
-    comments = None
-
-    barlines = None
-    sections = None
-    parts = None
-
-    def __init__(self, file_path):
-        self.file_path = file_path
         self.metadata = {}
         self.comments = []
-        self.barlines = []
+        self.section_order = []
+
         self.sections = []
+        self.barlines = []
         self.parts = []
+
+    def import_kernfile(self, file_path):
+        """Import a kernfile and overwrite the internal
+           state of the KernScore.
+        """
+        if self.file_path:
+            self.__init__()
+
+        self.file_path = file_path
 
         # Partwise markers.
         next_beats = []
@@ -100,7 +102,7 @@ class KernScore:
                            for i, string in enumerate(line.split('\t')) ]
 
                 for i, token in enumerate(tokens):
-                    token and self.parts[i]['events'][token['beat']] = token
+                    token and self.parts[i]['events'].append(token)
                     next_beats[i] += token.get('duration', 0)
 
         kernfile.close()
@@ -124,10 +126,24 @@ class KernScore:
             midi.writeFile(binfile)
 
 
+    def cadences(self):
+        """Return a list of cadence dicts."""
+        part_fermatas = []
+        for part in self.parts:
+            part_fermatas.append([ event for event in part['events']
+                                   if ';' in event['modifiers'] ])
+
+        cadences = []
+        for stack in zip(*part_fermatas):
+            cadences.append(new_cadence(stack))
+
+        return cadences
+
+
 # Sub-parsers / models.
 def new_part(declaration):
     return { 'declaration': declaration,
-             'events': {} }
+             'events': [] }
 
 def new_barline(kern_line, beat):
     """Make a new barline dict.
@@ -183,3 +199,12 @@ def new_token(token_string, beat, timebase=4):
         }
 
     return token
+
+def new_cadence(partstack):
+    """Create a new cadence object using a partstack.
+       TODO: figure out what really should be represented.
+    """
+    return {'pitches': tuple( p['pitch'] for p in partstack ),
+            'midinotes': tuple( p['midinote'] for p in partstack ),
+            'beats': tuple( p['beat'] for p in partstack ),
+    }
