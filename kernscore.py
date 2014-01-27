@@ -17,7 +17,7 @@ class KernScore:
     """Only verified for Bach Chorales right now.
     """
     file_path = None
-    reference_data = {}
+    metadata = {}
     comments = []
     barlines = []
 
@@ -39,7 +39,7 @@ class KernScore:
             # Parse comments.
             if line[:3] == '!!!':
                 refkey = line[3:6]
-                self.reference_data[refkey] = line[8:]
+                self.metadata[refkey] = line[8:]
 
             elif line[:2] == '!!':
                 self.comments.append(line[4:])
@@ -107,19 +107,18 @@ class KernScore:
 
     def export_midi(self, file_path):
         """Export a MIDI file."""
-        midi = MIDIFile(len(self.parts))
+        midi = MIDIFile(1)
+        midi.addTrackName(0, 0, self.metadata.get('OTL'))
+        midi.addTempo(0, 0, 80)
 
         for i, part in enumerate(self.parts):
-            midi.addTrackName(i, 0, part['declaration'])
-            midi.addTempo(i, 0, 100)
-            
             non_rests = [ d for d in part['data'] if d['pitch'] != 'r' ]
             for note in non_rests:
-                midi.addNote(track=i, channel=0,
+                midi.addNote(track=1, channel=i,
                              pitch=note['midinote'],
                              time=note['beat'],
                              duration=note['duration'],
-                             volume=100)
+                             volume=80)
 
         with open(file_path, 'wb') as binfile:
             midi.writeFile(binfile)
