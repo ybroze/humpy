@@ -18,7 +18,6 @@ class KernScore:
     """
     file_path = None
     reference_data = {}
-    global_comments = []
     comments = []
     barlines = []
 
