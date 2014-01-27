@@ -26,8 +26,8 @@ class KernScore:
 
     parts = []
 
-    def __init__(self, file_path):
-        self.file_path = file_path
+    def __init__(self, kernfile_path):
+        self.file_path = kernfile_path
 
         # Partwise markers.
         next_beats = []
@@ -174,19 +174,13 @@ def new_token(token_string, beat, timebase=4):
         modifiers = ''.join(modifiers_re.findall(token_string))
         recip = ''.join(recip_re.findall(token_string))
 
-        # Breve durations are indicated with '0'.
-        elif duration[-1] == '.':
-            print 'found it'
-
-        if recip == '0':
-            duration = 0.5
-
-
-        token = { 'pitch': pitch,
-                  'recip': recip,
-                  'midinote': pitch_to_midinote(pitch),
-                  'duration': recip_to_duration(recip) * timebase,
-                  'beat': beat }
-                  'modifiers': modifiers,
+        token = {
+            'pitch': pitch,
+            'recip': recip,
+            'midinote': pitch_to_midinote(pitch),
+            'duration': recip_to_duration(recip) * timebase,
+            'beat': beat,
+            'modifiers': modifiers,
+        }
 
     return token
