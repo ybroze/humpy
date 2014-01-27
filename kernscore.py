@@ -100,7 +100,7 @@ class KernScore:
                            for i, string in enumerate(line.split('\t')) ]
 
                 for i, token in enumerate(tokens):
-                    token and self.parts[i]['data'].append(token)
+                    token and self.parts[i]['events'][token['beat']] = token
                     next_beats[i] += token.get('duration', 0)
 
         kernfile.close()
@@ -112,7 +112,7 @@ class KernScore:
         midi.addTempo(0, 0, 80)
 
         for i, part in enumerate(self.parts):
-            non_rests = [ d for d in part['data'] if d['pitch'] != 'r' ]
+            non_rests = [ d for d in part['events'] if d['pitch'] != 'r' ]
             for note in non_rests:
                 midi.addNote(track=0, channel=i,
                              pitch=note['midinote'],
@@ -127,7 +127,7 @@ class KernScore:
 # Sub-parsers / models.
 def new_part(declaration):
     return { 'declaration': declaration,
-             'data': [] }
+             'events': {} }
 
 def new_barline(kern_line, beat):
     """Make a new barline dict.
