@@ -24,7 +24,7 @@ def recip_to_duration(recip):
     """
     # Breves are indicated by zero.
     if recip[0] == '0':
-        duration = 0.5
+        duration = 2
     else:
         duration = float(recip.rstrip('.')) ** -1
 
