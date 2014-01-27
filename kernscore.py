@@ -6,6 +6,8 @@ import re
 
 import pycountry
 
+from humpy.utils import pitch_to_number
+
 pitches_re = re.compile('[ra-gA-Gn#\-]+')
 durations_re = re.compile('[0-9.]+')
 modifiers_re = re.compile('[^ra-gA-Gn#\-0-9.]')

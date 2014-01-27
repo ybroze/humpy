@@ -4,8 +4,9 @@ Utilities for working with pitches, durations, etc.
 
 PC = [0, 2, 4, 5, 7, 9, 11]
 
-def humpitch_to_number(pitch):
-    """Convert a pitch string such as 'AA' to a MIDI note number.
+def pitch_to_number(pitch):
+    """Convert a humdrum pitch string such as 'AA#'
+       to a MIDI note number.
     """
     note = ''.join( c for c in pitch if c not in '#-n' )
 
