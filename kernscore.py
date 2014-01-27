@@ -37,46 +37,18 @@ class KernScore:
             line = line.strip()
 
             # Parse comments.
-            if line[:3] == '!!!':
+            if line.startswith('!!!'):
                 refkey = line[3:6]
                 self.metadata[refkey] = line[8:]
 
-            elif line[:2] == '!!':
+            elif line.startswith('!!'):
                 self.comments.append(line[4:])
 
-            elif line[0] == '!':
+            elif line.startswith('!'):
                 # Discard inline comments.
                 pass
 
-            # Parse interpretations.
-            elif '**kern' in line:
-                tokens = line.split('\t')
-                for token in tokens:
-                    self.parts.append(new_part(token))
-                    next_beats.append(0)
-
-            elif '*IC' in line:
-                for i, token in enumerate(line.split('\t')):
-                    if token != '*':
-                        self.parts[i]['instrumentclass'] = token
-
-            elif '*I' in line:
-                for i, token in enumerate(line.split('\t')):
-                    if token != '*':
-                        self.parts[i]['instrument'] = token
-
-            elif '*k' in line:
-                for i, token in enumerate(line.split('\t')):
-                    self.parts[i]['keysig'] = token
-
-            elif '*M' in line:
-                for i, token in enumerate(line.split('\t')):
-                    self.parts[i]['timesig'] = token
-
-            elif '*clef' in line:
-                for i, token in enumerate(line.split('\t')):
-                    self.parts[i]['clef'] = token
-
+            # Parse scorewide interpretations.
             elif '*>[' in line:
                 self.section_order = line[3:-1].split(',')
 
@@ -86,7 +58,32 @@ class KernScore:
             elif '*-' in line:
                 # That's all, folks.
                 pass
-                
+
+            # Parse spinewise interpretations.
+            elif line.startswith('*'):
+
+                for i, token in enumerate(line.split('\t')):
+                    if token == '**kern':
+                        # Create a new part, and initialize an entry
+                        # in the next_beats array.
+                        self.parts.append(new_part(token))
+                        next_beats.append(0)
+
+                    elif token.startswith('*IC'):
+                        self.parts[i]['instrument_class'] = token.lstrip('*IC')
+
+                    elif token.startswith('*I'):
+                        self.parts[i]['instrument'] = token.lstrip('*I')
+
+                    elif token.startswith('*k'):
+                        self.parts[i]['key_sig'] = token.lstrip('*k')
+
+                    elif token.startswith('*M'):
+                        self.parts[i]['time_sig'] = token.lstrip('*M')
+
+                    elif token.startswith('*clef'):
+                        self.parts[i]['clef'] = token.lstrip('*clef')
+
             # Parse data tokens.
             elif '=' in line:
                 self.barlines.append(new_barline(line, min(next_beats)))
@@ -101,8 +98,6 @@ class KernScore:
                     token and self.parts[i]['data'].append(token)
                     next_beats[i] += token.get('duration', 0)
 
-
-        # Close the file.
         kernfile.close()
 
     def export_midi(self, file_path):
