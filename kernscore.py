@@ -6,34 +6,37 @@ import re
 
 import pycountry
 
-pitches_re = re.compile('[a-gA-Gr]+')
+pitches_re = re.compile('[ra-gA-Gn#\-]+')
 durations_re = re.compile('[0-9.]+')
-modifiers_re = re.compile('[^a-zA-Zr0-9.]')
+modifiers_re = re.compile('[^ra-gA-Gn#\-0-9.]')
 
 
 class KernScore:
     """Only verified for Bach Chorales right now.
     """
+    file_path = None
     reference_data = {}
     global_comments = []
     comments = []
     barlines = []
     parts = []
 
-    def __init__(self, path):
-        current_beat = 0
-        kernfile = open(path)
+    def __init__(self, file_path):
+        self.file_path = file_path
 
+        current_beat = 0
+
+        kernfile = open(file_path)
         for line in kernfile:
             line = line.strip()
 
             # Parse comments.
             if line[:3] == '!!!':
                 refkey = line[3:6]
-                reference_data[refkey] = line[8:]
+                self.reference_data[refkey] = line[8:]
 
             elif line[:2] == '!!':
-                comments.append(line[4:])
+                self.comments.append(line[4:])
 
             elif '!' in line:
                 # Discard inline comments.
@@ -43,29 +46,29 @@ class KernScore:
             elif '**kern' in line:
                 tokens = line.split('\t')
                 for token in tokens:
-                    parts.append(new_part(token))
+                    self.parts.append(new_part(token))
 
             elif '*IC' in line:
                 for i, token in enumerate(line.split('\t')):
                     if token != '*':
-                        parts[i]['instrumentclass'] = token
+                        self.parts[i]['instrumentclass'] = token
 
             elif '*I' in line:
                 for i, token in enumerate(line.split('\t')):
                     if token != '*':
-                        parts[i]['instrument'] = token
+                        self.parts[i]['instrument'] = token
 
             elif '*k' in line:
                 for i, token in enumerate(line.split('\t')):
-                    parts[i]['keysig'] = token
+                    self.parts[i]['keysig'] = token
 
             elif '*M' in line:
                 for i, token in enumerate(line.split('\t')):
-                    parts[i]['timesig'] = token
+                    self.parts[i]['timesig'] = token
 
             elif '*clef' in line:
                 for i, token in enumerate(line.split('\t')):
-                    parts[i]['clef'] = token
+                    self.parts[i]['clef'] = token
 
             elif '*-' in line:
                 # That's all, folks.
@@ -73,7 +76,7 @@ class KernScore:
                 
             # Parse data tokens.
             elif '=' in line:
-                barlines.append(new_barline(line, current_beat))
+                self.barlines.append(new_barline(line, current_beat))
 
             else:
                 tokens = [ new_token(string, current_beat)
@@ -81,7 +84,7 @@ class KernScore:
 
                 # Append non-null tokens to the data.
                 for i, token in enumerate(tokens):
-                    token and parts[i]['data'].append(token)
+                    token and self.parts[i]['data'].append(token)
 
                 current_beat += max( t.get('duration', 0)
                                      for t in tokens ) ** -1
