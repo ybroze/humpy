@@ -34,8 +34,6 @@ class KernScore:
 
         kernfile = open(file_path)
         for line in kernfile:
-            print line
-
             line = line.strip()
 
             # Parse comments.
