@@ -14,7 +14,7 @@ def pitch_to_midinote(pitch):
         octave = 5 - len(note)
         scale_degree = ( ord(note[0]) - 67 ) % 7
     else:
-        octave = 3 + len(note)
+        octave = 4 + len(note)
         scale_degree = ( ord(note[0]) - 99 ) % 7
 
     return 12 * octave + PC[scale_degree] + pitch.count('#') - pitch.count('-')
