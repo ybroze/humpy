@@ -6,10 +6,10 @@ import re
 
 from midiutil.MidiFile import MIDIFile
 
-from humpy.utils import pitch_to_midinote
+from humpy.utils import pitch_to_midinote, recip_to_duration
 
 pitches_re = re.compile('[ra-gA-Gn#\-]+')
-durations_re = re.compile('[0-9.]+')
+recip_re = re.compile('[0-9.]+')
 modifiers_re = re.compile('[^ra-gA-Gn#\-0-9.]')
 
 
@@ -29,7 +29,8 @@ class KernScore:
     def __init__(self, file_path):
         self.file_path = file_path
 
-        current_beat = 0
+        # Partwise markers.
+        next_beats = []
 
         kernfile = open(file_path)
         for line in kernfile:
@@ -52,6 +53,7 @@ class KernScore:
                 tokens = line.split('\t')
                 for token in tokens:
                     self.parts.append(new_part(token))
+                    next_beats.append(0)
 
             elif '*IC' in line:
                 for i, token in enumerate(line.split('\t')):
@@ -79,7 +81,7 @@ class KernScore:
                 self.section_order = line[3:-1].split(',')
 
             elif '*>' in line:
-                self.sections.append(new_section(line, current_beat))
+                self.sections.append(new_section(line, min(next_beats)))
                 
             elif '*-' in line:
                 # That's all, folks.
@@ -87,18 +89,18 @@ class KernScore:
                 
             # Parse data tokens.
             elif '=' in line:
-                self.barlines.append(new_barline(line, current_beat))
+                self.barlines.append(new_barline(line, min(next_beats)))
 
             else:
-                tokens = [ new_token(string, current_beat)
-                           for string in line.split('\t') ]
+                tokens = [ new_token(string, next_beats[i])
+                           for i, string in enumerate(line.split('\t')) ]
 
                 # Append non-null tokens to the data.
                 for i, token in enumerate(tokens):
-                    token and self.parts[i]['data'].append(token)
 
-                current_beat += min( t.get('duration', float('inf'))
-                                     for t in tokens )
+                    token and self.parts[i]['data'].append(token)
+                    next_beats[i] += token.get('duration', 0)
+
 
         # Close the file.
         kernfile.close()
@@ -157,28 +159,34 @@ def new_section(kern_line, beat):
 def new_token(token_string, beat, timebase=4):
     """Create a new token dictionary from a kern
        token string.
+
     @param token_string: A single humdrum token.
     @param beat: The beat the token falls on.
     @param timebase: The recip indication of the beat note.
     @return: a token dict.
+
     """
     if token_string[0] == '.':
         token = {}
 
     else:
         pitch = ''.join(pitches_re.findall(token_string))
-        duration = float(''.join(durations_re.findall(token_string)))
         modifiers = ''.join(modifiers_re.findall(token_string))
+        recip = ''.join(recip_re.findall(token_string))
 
         # Breve durations are indicated with '0'.
-        if duration == 0:
+        elif duration[-1] == '.':
+            print 'found it'
+
+        if recip == '0':
             duration = 0.5
 
+
         token = { 'pitch': pitch,
+                  'recip': recip,
                   'midinote': pitch_to_midinote(pitch),
-                  'duration': (float(duration) ** - 1) * timebase,
-                  'recip': float(duration),
-                  'modifiers': modifiers,
+                  'duration': recip_to_duration(recip) * timebase,
                   'beat': beat }
+                  'modifiers': modifiers,
 
     return token
