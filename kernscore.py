@@ -14,20 +14,25 @@ modifiers_re = re.compile('[^ra-gA-Gn#\-0-9.]')
 
 
 class KernScore:
-    """Only verified for Bach Chorales right now.
+    """Python class representing a .krn score.
+    Only verified for Bach Chorales right now.
+    Instantiate using KernScore(path_to_kernfile).
     """
     file_path = None
-    metadata = {}
-    comments = []
-    barlines = []
-
+    metadata = None
+    comments = None
+    barlines = None
     section_order = None
-    sections = []
-
-    parts = []
+    sections = None
+    parts = None
 
     def __init__(self, file_path):
         self.file_path = file_path
+        self.metadata = {}
+        self.comments = []
+        self.barlines = []
+        self.sections = []
+        self.parts = []
 
         # Partwise markers.
         next_beats = []
