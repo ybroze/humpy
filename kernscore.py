@@ -19,10 +19,12 @@ class KernScore:
     Instantiate using KernScore(path_to_kernfile).
     """
     file_path = None
+    section_order = None
+
     metadata = None
     comments = None
+
     barlines = None
-    section_order = None
     sections = None
     parts = None
 
@@ -112,7 +114,7 @@ class KernScore:
         for i, part in enumerate(self.parts):
             non_rests = [ d for d in part['data'] if d['pitch'] != 'r' ]
             for note in non_rests:
-                midi.addNote(track=1, channel=i,
+                midi.addNote(track=0, channel=i,
                              pitch=note['midinote'],
                              time=note['beat'],
                              duration=note['duration'],
