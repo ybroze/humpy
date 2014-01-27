@@ -29,6 +29,21 @@ class KernScore:
         self.barlines = []
         self.parts = []
 
+    @property
+    def cadences(self):
+        """Chorale cadences, as judged by fermata location.
+        """
+        part_fermatas = []
+        for part in self.parts:
+            part_fermatas.append([ event for event in part['events']
+                                   if ';' in event['modifiers'] ])
+
+        cadences = []
+        for stack in zip(*part_fermatas):
+            cadences.append(new_cadence(stack))
+
+        return cadences
+
     def import_kernfile(self, file_path):
         """Import a kernfile and overwrite the internal
            state of the KernScore.
@@ -124,20 +139,6 @@ class KernScore:
 
         with open(file_path, 'wb') as binfile:
             midi.writeFile(binfile)
-
-
-    def cadences(self):
-        """Return a list of cadence dicts."""
-        part_fermatas = []
-        for part in self.parts:
-            part_fermatas.append([ event for event in part['events']
-                                   if ';' in event['modifiers'] ])
-
-        cadences = []
-        for stack in zip(*part_fermatas):
-            cadences.append(new_cadence(stack))
-
-        return cadences
 
 
 # Sub-parsers / models.
