@@ -4,9 +4,9 @@ Only handles basic functionality right now.
 """
 import re
 
-import pycountry
+from midiutil.MidiFile import MIDIFile
 
-from humpy.utils import pitch_to_number
+from humpy.utils import pitch_to_midinote
 
 pitches_re = re.compile('[ra-gA-Gn#\-]+')
 durations_re = re.compile('[0-9.]+')
@@ -97,11 +97,30 @@ class KernScore:
                 for i, token in enumerate(tokens):
                     token and self.parts[i]['data'].append(token)
 
-                current_beat += max( t.get('duration', 0)
-                                     for t in tokens ) ** -1
+                current_beat += min( t.get('duration', float('inf'))
+                                     for t in tokens )
 
         # Close the file.
         kernfile.close()
+
+    def export_midi(self, file_path):
+        """Export a MIDI file."""
+        midi = MIDIFile(len(self.parts))
+
+        for i, part in enumerate(self.parts):
+            midi.addTrackName(i, 0, part['declaration'])
+            midi.addTempo(i, 0, 100)
+            
+            non_rests = [ d for d in part['data'] if d['pitch'] != 'r' ]
+            for note in non_rests:
+                midi.addNote(track=i, channel=0,
+                             pitch=note['midinote'],
+                             time=note['beat'],
+                             duration=note['duration'],
+                             volume=100)
+
+        with open(file_path, 'wb') as binfile:
+            midi.writeFile(binfile)
 
 
 # Sub-parsers / models.
@@ -135,9 +154,13 @@ def new_section(kern_line, beat):
     return { 'beat': beat,
              'section': first_token[2:] }
 
-def new_token(token_string, beat):
+def new_token(token_string, beat, timebase=4):
     """Create a new token dictionary from a kern
        token string.
+    @param token_string: A single humdrum token.
+    @param beat: The beat the token falls on.
+    @param timebase: The recip indication of the beat note.
+    @return: a token dict.
     """
     if token_string[0] == '.':
         token = {}
@@ -152,7 +175,9 @@ def new_token(token_string, beat):
             duration = 0.5
 
         token = { 'pitch': pitch,
-                  'duration': float(duration),
+                  'midinote': pitch_to_midinote(pitch),
+                  'duration': (float(duration) ** - 1) * timebase,
+                  'recip': float(duration),
                   'modifiers': modifiers,
                   'beat': beat }
 
