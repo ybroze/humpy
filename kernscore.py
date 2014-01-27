@@ -21,6 +21,10 @@ class KernScore:
     global_comments = []
     comments = []
     barlines = []
+
+    section_order = None
+    sections = []
+
     parts = []
 
     def __init__(self, file_path):
@@ -30,6 +34,8 @@ class KernScore:
 
         kernfile = open(file_path)
         for line in kernfile:
+            print line
+
             line = line.strip()
 
             # Parse comments.
@@ -40,7 +46,7 @@ class KernScore:
             elif line[:2] == '!!':
                 self.comments.append(line[4:])
 
-            elif '!' in line:
+            elif line[0] == '!':
                 # Discard inline comments.
                 pass
 
@@ -72,6 +78,12 @@ class KernScore:
                 for i, token in enumerate(line.split('\t')):
                     self.parts[i]['clef'] = token
 
+            elif '*>[' in line:
+                self.section_order = line[3:-1].split(',')
+
+            elif '*>' in line:
+                self.sections.append(new_section(line, current_beat))
+                
             elif '*-' in line:
                 # That's all, folks.
                 pass
@@ -101,6 +113,8 @@ def new_part(declaration):
              'data': [] }
 
 def new_barline(kern_line, beat):
+    """Make a new barline dict.
+    """
     barline = {'beat': beat}
     first_token = kern_line.split('\t')[0]
 
@@ -116,16 +130,29 @@ def new_barline(kern_line, beat):
 
     return barline
 
+def new_section(kern_line, beat):
+    """Make a new section dict.
+    """
+    first_token = kern_line.split('\t')[0]
+
+    return { 'beat': beat,
+             'section': first_token[2:] }
+
 def new_token(token_string, beat):
     """Create a new token dictionary from a kern
        token string.
     """
-    if token_string == '.':
+    if token_string[0] == '.':
         token = {}
+
     else:
         pitch = ''.join(pitches_re.findall(token_string))
-        duration = ''.join(durations_re.findall(token_string))
+        duration = float(''.join(durations_re.findall(token_string)))
         modifiers = ''.join(modifiers_re.findall(token_string))
+
+        # Breve durations are indicated with '0'.
+        if duration == 0:
+            duration = 0.5
 
         token = { 'pitch': pitch,
                   'duration': float(duration),
