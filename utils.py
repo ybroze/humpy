@@ -18,3 +18,16 @@ def pitch_to_midinote(pitch):
         scale_degree = ( ord(note[0]) - 99 ) % 7
 
     return 12 * octave + PC[scale_degree] + pitch.count('#') - pitch.count('-')
+
+def recip_to_duration(recip):
+    """Convert a humdrum recip string to a wholenote duration.
+    """
+    # Breves are indicated by zero.
+    if recip[0] == '0':
+        duration = 0.5
+    else:
+        duration = float(recip.rstrip('.')) ** -1
+
+    dots = recip.count('.')
+
+    return (2 * duration) - duration*(2.0 ** (-1 * dots))
