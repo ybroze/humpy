@@ -92,9 +92,7 @@ class KernScore:
                 tokens = [ new_token(string, next_beats[i])
                            for i, string in enumerate(line.split('\t')) ]
 
-                # Append non-null tokens to the data.
                 for i, token in enumerate(tokens):
-
                     token and self.parts[i]['data'].append(token)
                     next_beats[i] += token.get('duration', 0)
 
