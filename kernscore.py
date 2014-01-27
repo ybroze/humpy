@@ -26,8 +26,8 @@ class KernScore:
 
     parts = []
 
-    def __init__(self, kernfile_path):
-        self.file_path = kernfile_path
+    def __init__(self, file_path):
+        self.file_path = file_path
 
         # Partwise markers.
         next_beats = []
