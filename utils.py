@@ -16,4 +16,4 @@ def humpitch_to_number(pitch):
         octave = 3 + len(note)
         scale_degree = ( ord(note[0]) - 99 ) % 7
 
-    return 12 * octave + PC[scale_degree] + note.count('#') - note.count('-')
+    return 12 * octave + PC[scale_degree] + pitch.count('#') - pitch.count('-')
