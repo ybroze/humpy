@@ -1,10 +1,12 @@
 humpy
 =====
-
 Python Manipulation of Humdrum Kern Files
 
 This is not a full-fledged project, just a bit of work in the right general
-direction.
+direction to satisfy some hacking cravings.
+
+During early development, I just set `PYTHONPATH` to the enclosing folder for
+any repos; this is nowhere near packaged up.
 
 ```
 from humpy.kernscore import KernScore
