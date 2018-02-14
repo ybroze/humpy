@@ -145,6 +145,7 @@ def new_part(declaration):
     return { 'declaration': declaration,
              'events': [] }
 
+
 def new_barline(kern_line, beat):
     """Make a new barline dict.
     """
