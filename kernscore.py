@@ -13,7 +13,7 @@ RECIP_RE = re.compile('[0-9.]+')
 MODIFIERS_RE = re.compile('[^ra-gA-Gn#\-0-9.]')
 
 
-class KernScore:
+class KernScore(object):
     """Python class representing a .krn score.
     Only verified for Bach Chorales right now.
     Instantiate using KernScore(path_to_kernfile).
